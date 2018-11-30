@@ -40,6 +40,14 @@ public class SprintfFormatterPlugin
         @Config("null_string")
         @ConfigDefault("\"\"")
         public String getNullString();
+
+        @Config("header_string")
+        @ConfigDefault("\"\"")
+        public String getHeaderString();
+
+        @Config("footer_string")
+        @ConfigDefault("\"\"")
+        public String getFooterString();
     }
 
     @Override
@@ -68,8 +76,19 @@ public class SprintfFormatterPlugin
         final LineEncoder encoder = new LineEncoder(output, task);
         final String nullString = task.getNullString();
         final Schema outputSchema = getOutputSchema(task.getColumnKeys(), inputSchema);
+        final String headerString = task.getHeaderString();
+        final String footerString = task.getFooterString();
 
         encoder.nextFile();
+
+        logger.debug("header_string => {}", headerString);
+        logger.debug("footer_string => {}", footerString);
+
+        // write header string
+        if (!headerString.isEmpty()) {
+            encoder.addText(headerString);
+            encoder.addNewLine();
+        }
 
         return new PageOutput() {
             private final PageReader pageReader = new PageReader(inputSchema);
@@ -106,6 +125,13 @@ public class SprintfFormatterPlugin
 
             public void finish()
             {
+
+                // write footer string
+                if (!footerString.isEmpty()) {
+                    encoder.addText(footerString);
+                    encoder.addNewLine();
+                }
+
                 encoder.finish();
             }
 
